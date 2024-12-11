@@ -34,6 +34,7 @@ class _CalculatorViewState extends State<CalculatorView> {
 
   final _key = GlobalKey<FormState>();
   String input = "";
+  String? miniDisplay;
   double? firstOperand;
   double? secondOperand;
   String? operator;
@@ -62,6 +63,7 @@ class _CalculatorViewState extends State<CalculatorView> {
       }
       _textController.text = result.toString();
       input = result.toString();
+      miniDisplay = null;
       firstOperand = null;
       secondOperand = null;
       operator = null;
@@ -80,6 +82,17 @@ class _CalculatorViewState extends State<CalculatorView> {
           key: _key,
           child: Column(
             children: [
+              if (miniDisplay != null)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    miniDisplay!,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
               TextFormField(
                 textDirection: TextDirection.rtl,
                 controller: _textController,
@@ -112,41 +125,46 @@ class _CalculatorViewState extends State<CalculatorView> {
                       ),
                       onPressed: () {
                         String symbol = lstSymbols[index];
-                        switch (symbol) {
-                          case "C":
-                            _textController.text = "";
-                            input = "";
-                            firstOperand = null;
-                            secondOperand = null;
-                            operator = null;
-                            break;
-                          case "<-":
-                            if (input.isNotEmpty) {
-                              input = input.substring(0, input.length - 1);
-                              _textController.text = input;
-                            }
-                            break;
-                          case "+":
-                          case "-":
-                          case "*":
-                          case "/":
-                          case "%":
-                            if (firstOperand == null && input.isNotEmpty) {
-                              firstOperand = double.tryParse(input);
-                              operator = symbol;
+                        setState(() {
+                          switch (symbol) {
+                            case "C":
+                              _textController.text = "";
                               input = "";
-                            }
-                            break;
-                          case "=":
-                            if (firstOperand != null && input.isNotEmpty) {
-                              secondOperand = double.tryParse(input);
-                              _calculate();
-                            }
-                            break;
-                          default:
-                            input += symbol;
-                            _textController.text = input;
-                        }
+                              miniDisplay = null;
+                              firstOperand = null;
+                              secondOperand = null;
+                              operator = null;
+                              break;
+                            case "<-":
+                              if (input.isNotEmpty) {
+                                input = input.substring(0, input.length - 1);
+                                _textController.text = input;
+                              }
+                              break;
+                            case "+":
+                            case "-":
+                            case "*":
+                            case "/":
+                            case "%":
+                              if (firstOperand == null && input.isNotEmpty) {
+                                firstOperand = double.tryParse(input);
+                                operator = symbol;
+                                miniDisplay = "$firstOperand $operator";
+                                input = "";
+                                _textController.text = input;
+                              }
+                              break;
+                            case "=":
+                              if (firstOperand != null && input.isNotEmpty) {
+                                secondOperand = double.tryParse(input);
+                                _calculate();
+                              }
+                              break;
+                            default:
+                              input += symbol;
+                              _textController.text = input;
+                          }
+                        });
                       },
                       child: Text(
                         lstSymbols[index],
